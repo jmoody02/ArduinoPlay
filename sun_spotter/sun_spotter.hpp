@@ -9,28 +9,21 @@
 #ifndef sun_spotter_hpp
 #define sun_spotter_hpp
 
-#include <stdio.h>
-
-struct EquitorialCoordinate {
-    double x;
-    double y;
-    double z;
-};
-
 class SunSpotter {
 private:
-    int n;
-    double L;
-    double g;
-    double lambda;
-    int beta = 0;
-    double R;
+    double solar_azimuth_angle;
+    double solar_adjusted_elevation_angle;
+    int time_zone;
+    double longitude;
+    double latitude;
 public:
     SunSpotter();
-    int getSomething();
-    EquitorialCoordinate getEquitorialCoordinates();
-    void printVars();
+    void set_time_zone(int);
+    void set_latitude(int);
+    void set_longitude(int);
+    void calculate();
+    double getAltitude();
+    double getAzimuth();
 };
-
 
 #endif /* sun_spotter_hpp */

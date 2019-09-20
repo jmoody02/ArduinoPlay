@@ -1,19 +1,21 @@
-#include <ArduinoSTL.h>
 
 #include "sun_spotter.hpp"
+#include <iostream>
+#include <math.h>
+#include <Servo.h>
 
 SunSpotter sunSpotter;
+Servo myservo2;
+Servo myservo6;
 
 void setup() {
-  // put your setup code here, to run once:
-  printf("hello, world");
-  sunSpotter.getSomething();
-  sunSpotter.printVars();
+  myservo2.attach(2);
+  myservo6.attach(6);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  EquitorialCoordinate ec;
-  ec = sunSpotter.getEquitorialCoordinates();
-  std::cout << "x:" << ec.x << " y:" << ec.y << " z:" << ec.z << std::endl;
+  sunSpotter.calculate();
+  myservo2.write(round( sunSpotter.getAzimuth() ));
+  myservo6.write(round( sunSpotter.getAltitude() ));
+  delay(1000);
 }
