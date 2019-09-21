@@ -1,6 +1,7 @@
 #include "sun_spotter.hpp"
 #include <time.h>
 #include <math.h>
+//#include <iostream>
 #include <iomanip>
 
 SunSpotter::SunSpotter () {
@@ -33,7 +34,7 @@ void SunSpotter::calculate(){
     double geom_mean_anom_sun =357.52911+julian_century*(35999.05029-0.0001537*julian_century);
     double eccent_earth_orbit =0.016708634-julian_century*(0.000042037+0.0000001267*julian_century);
     double eq_of_time = 4*(y*sin(2*(geom_mean_long_sun*M_PI/180))-2*eccent_earth_orbit*sin((geom_mean_anom_sun*M_PI/180))+4*eccent_earth_orbit*y*sin((geom_mean_anom_sun*M_PI/180))*cos(2*(geom_mean_long_sun*M_PI/180))-0.5*y*y*sin(4*(geom_mean_long_sun*M_PI/180))-1.25*eccent_earth_orbit*eccent_earth_orbit*sin(2*(geom_mean_anom_sun*M_PI/180)))*180/M_PI;
-    int minutes_of_day = (localtime(&now)->tm_hour*60) + localtime(&now)->tm_min;
+    int minutes_of_day = (localtime(&now)->tm_hour*60) + std::localtime(&now)->tm_min;
     double true_solar_time = fmod(minutes_of_day+eq_of_time+4*longitude-60*time_zone,1440);
     double hour_angle;
     if (true_solar_time / 4 < 0) {
@@ -65,7 +66,6 @@ void SunSpotter::calculate(){
     }
     atmospheric_refraction = atmospheric_refraction /3600;
     solar_adjusted_elevation_angle = solar_elevation_angle+atmospheric_refraction;
-
 }
 
 double SunSpotter::getAltitude() {
