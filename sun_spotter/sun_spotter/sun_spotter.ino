@@ -28,6 +28,8 @@ void loop() {
   
   sunSpotter.calculate(now);
   double azimuth = round( sunSpotter.getAzimuth() );
+  //adjust to my servo, which is 0 degrees for east
+  azimuth = azimuth - 90;
   if (azimuth > 180) {
     azimuth = azimuth - 180;
   }
