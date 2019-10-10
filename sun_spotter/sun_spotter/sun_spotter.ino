@@ -11,8 +11,14 @@ Servo myservo2;
 Servo myservo16;
 RTC_PCF8523 rtc;
 Adafruit_LSM303_Mag_Unified mag = Adafruit_LSM303_Mag_Unified(12345);
+bool generally_north;
+int i;
+float heading;
 
 void setup() {
+  generally_north = false;
+  i = 0;
+  heading = 0;
   Serial.begin(115200);
   myservo2.attach(2);
   myservo16.attach(16);
@@ -33,57 +39,64 @@ void setup() {
 }
 
 void loop() {
+  i = i + 1;
+  
+  
+  /* Get a new sensor event 
+     Identify compass heading  - check every loop until find generally north, then every 10 loops */ 
+  if (!generally_north || (i % 10 == 0)) {   
+    sensors_event_t event; 
+    mag.getEvent(&event);
+    
+    float Pi = 3.14159;
+    
+    // Calculate the angle of the vector y,x
+    heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
+    
+    // Normalize to 0-360
+    Serial.print("Compass Heading pre normalize: ");
+    Serial.println(heading);
+    if (heading < 0)
+    {
+      heading = 360 + heading;
+    }
+    if (heading > 5 && heading < 355) {
+        digitalWrite(0, LOW);
+      }
+      else {
+        digitalWrite(0, HIGH);
+      }
+    Serial.print("Compass Heading: ");
+    Serial.println(heading);
+  }
 
-  /* Get a new sensor event */ 
-  sensors_event_t event; 
-  mag.getEvent(&event);
-  
-  float Pi = 3.14159;
-  
-  // Calculate the angle of the vector y,x
-  float heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
-  
-  // Normalize to 0-360
-  Serial.print("Compass Heading pre normalize: ");
-  Serial.println(heading);
-  if (heading < 0)
-  {
-    heading = 360 + heading;
-  }
-  if (heading > 5 && heading < 355) {
-      digitalWrite(0, LOW);
+  if (i % 100 == 0) {
+    DateTime nowobj = rtc.now();
+    time_t now = nowobj.unixtime()-14400;
+    Serial.println(asctime(localtime(&now)));
+    
+    sunSpotter.calculate(now);
+    double azimuth = round( sunSpotter.getAzimuth() );
+    //adjust to my servo, which is 0 degrees for east
+    azimuth = azimuth - 90;
+    if (azimuth > 180) {
+      azimuth = azimuth - 180;
     }
-    else {
-      digitalWrite(0, HIGH);
+    if (heading < 5) {
+      azimuth = azimuth - round(heading);
     }
-  Serial.print("Compass Heading: ");
-  Serial.println(heading);
-  
-  DateTime nowobj = rtc.now();
-  time_t now = nowobj.unixtime()-14400;
-  Serial.println(asctime(localtime(&now)));
-  
-  sunSpotter.calculate(now);
-  double azimuth = round( sunSpotter.getAzimuth() );
-  //adjust to my servo, which is 0 degrees for east
-  azimuth = azimuth - 90;
-  if (azimuth > 180) {
-    azimuth = azimuth - 180;
+    if (heading > 355) { 
+      azimuth = azimuth + round (360 - heading);
+    }
+    Serial.println(azimuth);
+    myservo16.write(azimuth);
+    double altitude = round( sunSpotter.getAltitude() );
+    if (altitude > 180) {
+      altitude = altitude - 180;
+    }
+    Serial.println(altitude);
+    myservo2.write(altitude);
+    nowobj = NULL;
   }
-  if (heading < 5) {
-    azimuth = azimuth - round(heading);
-  }
-  if (heading > 355) { 
-    azimuth = azimuth + round (360 - heading);
-  }
-  Serial.println(azimuth);
-  myservo16.write(azimuth);
-  double altitude = round( sunSpotter.getAltitude() );
-  if (altitude > 180) {
-    altitude = altitude - 180;
-  }
-  Serial.println(altitude);
-  myservo2.write(altitude);
-  
   delay(100);
 }
